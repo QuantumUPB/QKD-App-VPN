@@ -274,7 +274,7 @@ class QKDApp(QWidget):
         self.buttons_layout.addStretch(1)
 
         # configure about section
-        self.about_label = QLabel("QKD VPN Tutorial\n\nThis application is a proof of concept for a QKD-enabled VPN. It generates WireGuard keys, acquires QKD keys, generates WireGuard configurations, and opens WireGuard and Linphone applications.")
+        self.about_label = QLabel("<b>QKD VPN Tutorial</b><br/>This application is a proof of concept for a QKD-enabled VPN. It generates WireGuard keys, acquires QKD keys, generates WireGuard configurations, and opens WireGuard and Linphone applications.")
         self.about_label.setWordWrap(True)
         self.about_layout.addWidget(self.about_label)
         # add two logos to about section
