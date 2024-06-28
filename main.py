@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QIcon, QIntValidator
 from PyQt5.QtCore import Qt
 from PyQt5.Qt import QSize
+from PyQt5.QtWidgets import QFrame
 import subprocess
 import os
 
@@ -64,7 +65,7 @@ class QKDApp(QWidget):
         self.setLayout(self.window_layout)
 
         # Window properties
-        self.setWindowTitle('QKD VPN Tutorial')
+        self.setWindowTitle('Quantum VPN')
         self.setGeometry(300, 100, 400, 100)
         self.show()
     
@@ -274,18 +275,31 @@ class QKDApp(QWidget):
         self.buttons_layout.addStretch(1)
 
         # configure about section
-        self.about_label = QLabel("<b>QKD VPN Tutorial</b><br/>This application is a proof of concept for a QKD-enabled VPN. It generates WireGuard keys, acquires QKD keys, generates WireGuard configurations, and opens WireGuard and Linphone applications.")
+        self.about_label = QLabel("<b>Quantum VPN:</b> Video conference over post-quantum VPN enhanced by QKD")
         self.about_label.setWordWrap(True)
         self.about_layout.addWidget(self.about_label)
+        self.line = QFrame()
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+        self.about_layout.addWidget(self.line)
         # add two logos to about section
         self.logo = QLabel()
-        self.logo.setPixmap(QPixmap("Logo.png").scaled(200, 200, Qt.KeepAspectRatio))
+        self.logo.setPixmap(QPixmap("Logo.png").scaled(60, 60, Qt.KeepAspectRatio))
         self.logo2 = QLabel()
-        self.logo2.setPixmap(QPixmap("upb.png").scaled(100, 100, Qt.KeepAspectRatio))
+        # self.logo2.setPixmap(QPixmap("upb.png").scaled(100, 100, Qt.KeepAspectRatio))
         self.logo_layout = QHBoxLayout()
+        self.about_copyright = QLabel('© 2024 National University of Science and Technology POLITEHNICA Bucharest')
         self.logo_layout.addWidget(self.logo)
-        self.logo_layout.addWidget(self.logo2)
+        self.logo_layout.addWidget(self.about_copyright)
+        # self.logo_layout.addWidget(self.logo2)
+        self.logo_layout.addStretch(1)
         self.about_layout.addLayout(self.logo_layout)
+
+        self.line2 = QFrame()
+        self.line2.setFrameShape(QFrame.HLine)
+        self.line2.setFrameShadow(QFrame.Sunken)
+        self.about_layout.addWidget(self.line2)
+
         self.about_label_website = QLabel('<a href="https://quantum.upb.ro/">Visit Website</a>')
         self.about_label_website.setOpenExternalLinks(True)
         self.about_label_github = QLabel('<a href="https://github.com/QuantumUPB/QKD-App-VPN">GitHub Repository</a>')
