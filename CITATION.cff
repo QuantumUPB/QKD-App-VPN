@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Popa"
+  given-names: "Alin-Bogdan"
+  orcid: "https://orcid.org/0009-0005-9846-5053"
+- family-names: "Ciobanu"
+  given-names: "Bogdan-Calin"
+- family-names: "Popescu"
+  given-names: "Pantelimon George"
+title: "Quantum VPN"
+version: 1.0
+date-released: 2024-07-01
+url: "https://github.com/QuantumUPB/QKD-App-VPN"

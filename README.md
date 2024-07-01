@@ -54,11 +54,11 @@ Select the `server` button, and follow the steps that are highlighted:
 - Add allowed peers, with the peer IP, peer public key and peer QKD key ID, all copied from the client configurations
 - Generate WireGuard Config
 
-With the generated server configuration file, upload it to the server, and copy it like this
+With the generated server configuration file, open Wireguard and import the generated config. Alternatively, if running the server on a different machine, you need to upload the config to the server and put it in the following location:
 
 `sudo cp ./wg_server.conf /etc/wireguard/wg0.conf`
 
-And now start the Wireguard server
+Now, start the Wireguard server
 
 `sudo wg-quick up wg0`
 
@@ -76,9 +76,8 @@ Afterwards, from the application, press the `Launch VideoCall` button, which wil
 
 ### Copyright and license
 
-This work is designed and implemented by the Quantum Team at POLITEHNICA Bucharest. All rights reserved, (C) 2024.
+This work has been implemented by Alin-Bogdan Popa and Bogdan-Calin Ciobanu, under the supervision of prof. Pantelimon George Popescu, within the Quantum Team in the Computer Science and Engineering department,Faculty of Automatic Control and Computers, National University of Science and Technology POLITEHNICA Bucharest (C) 2024. In any type of usage of this code or released software, this notice shall be preserved without any changes.
 
 If you use this software for research purposes, please follow the instructions in the "Cite this repository" option from the side panel.
 
-This work has been developed within RoNaQCI, part of EuroQCI, DIGITAL-2021-QCI-01-DEPLOY-NATIONAL, 101091562.
-
+This work has been partly supported by RoNaQCI, part of EuroQCI, DIGITAL-2021-QCI-01-DEPLOY-NATIONAL, 101091562.

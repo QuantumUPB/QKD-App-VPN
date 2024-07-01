@@ -1,3 +1,11 @@
+# This work has been implemented by Alin-Bogdan Popa and Bogdan-Calin Ciobanu,
+# under the supervision of prof. Pantelimon George Popescu, within the Quantum
+# Team in the Computer Science and Engineering department,Faculty of Automatic 
+# Control and Computers, National University of Science and Technology 
+# POLITEHNICA Bucharest (C) 2024. In any type of usage of this code or released
+# software, this notice shall be preserved without any changes.
+
+
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
