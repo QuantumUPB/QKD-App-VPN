@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QIcon, QIntValidator
 from PyQt5.QtCore import Qt
 from PyQt5.Qt import QSize
+from PyQt5.QtWidgets import QRadioButton, QButtonGroup, QTextEdit
 import subprocess
 import os
 
@@ -113,16 +114,59 @@ class QKDApp(QWidget):
         self.buttons_layout.addLayout(self.public_key_layout)
 
         if self.type == "client":
+            # # Step: Acquire QKD key
+            # self.step_qkd_layout = QHBoxLayout()
+            # self.step_qkd_button = QPushButton("Acquire QKD Key")
+            # self.step_qkd_button.clicked.connect(self.acquire_qkd_key)
+            # self.step_qkd_button.setEnabled(False)
+            # self.step_qkd_status = QLabel("")
+            # self.step_qkd_status.setFixedSize(20, 20)
+            # self.step_qkd_layout.addWidget(self.step_qkd_status)
+            # self.step_qkd_layout.addWidget(self.step_qkd_button)
+            # self.buttons_layout.addLayout(self.step_qkd_layout)
             # Step: Acquire QKD key
-            self.step_qkd_layout = QHBoxLayout()
+            self.step_qkd_layout = QVBoxLayout()
+
+            # Create radio buttons for selecting key acquisition mode
+            self.radio_fresh_key = QRadioButton("Acquire Fresh Key")
+            self.radio_paste_key = QRadioButton("Paste Base64 Key")
+            self.radio_fresh_key.setChecked(True)  # Default selection
+
+            # Add radio buttons to a button group to manage selection
+            self.key_selection_group = QButtonGroup()
+            self.key_selection_group.addButton(self.radio_fresh_key)
+            self.key_selection_group.addButton(self.radio_paste_key)
+
+            # Create a text field for pasting a Base64 key
+            self.paste_key_field = QTextEdit()
+            self.paste_key_field.setPlaceholderText("Paste your Base64 key here")
+            self.paste_key_field.setDisabled(True)  # Initially disabled
+
+            # Connect radio button changes to enable/disable the paste field
+            self.radio_fresh_key.toggled.connect(self.toggle_key_field)
+
+            # Add elements to the layout
+            self.step_qkd_layout.addWidget(self.radio_fresh_key)
+            self.step_qkd_layout.addWidget(self.radio_paste_key)
+            self.step_qkd_layout.addWidget(self.paste_key_field)
+
+            # Create the QKD key acquisition button and status indicator
             self.step_qkd_button = QPushButton("Acquire QKD Key")
             self.step_qkd_button.clicked.connect(self.acquire_qkd_key)
-            self.step_qkd_button.setEnabled(False)
             self.step_qkd_status = QLabel("")
             self.step_qkd_status.setFixedSize(20, 20)
-            self.step_qkd_layout.addWidget(self.step_qkd_status)
-            self.step_qkd_layout.addWidget(self.step_qkd_button)
+
+            # Add the button and status indicator to a horizontal layout
+            self.qkd_button_layout = QHBoxLayout()
+            self.qkd_button_layout.addWidget(self.step_qkd_status)
+            self.qkd_button_layout.addWidget(self.step_qkd_button)
+
+            # Add the button layout to the main layout
+            self.step_qkd_layout.addLayout(self.qkd_button_layout)
+
+            # Finally, add the layout to your main layout (assumed to be `buttons_layout` in your case)
             self.buttons_layout.addLayout(self.step_qkd_layout)
+
 
             # Label to display the QKD key id
             self.qkd_key_id_label = QLabel("")
@@ -418,42 +462,59 @@ class QKDApp(QWidget):
             self.status_bar.setStyleSheet("color: red")
             self.status_bar.showMessage(f"Error generating WireGuard key pair: {str(e)}")
 
+    # Function to toggle the key field based on the selected radio button
+    def toggle_key_field(self):
+        self.paste_key_field.setDisabled(self.radio_fresh_key.isChecked())
 
+    # Function to handle acquiring the key (modified to account for pasted key)
     def acquire_qkd_key(self):
-        try:
-            # Placeholder for QKD key acquisition logic
-            # Replace with actual call to qkdgkt
-            key_data = qkdgkt.qkd_get_key_custom_params('UPB-AP-UPBC', '141.85.241.65:12443', 'upb-ap.crt', 'qkd.key', 'qkd-ca.crt', 'pgpopescu', 'Request')
-            key_data = json.loads(key_data)
-            key = key_data['keys'][0]['key']
-            key_id = key_data['keys'][0]['key_ID']
-            self.qkd_key = key
-            self.qkd_key_id = key_id
-            print(key_id, key)
+        if self.radio_fresh_key.isChecked():
+            # self.step_qkd_status.setText("Acquiring fresh key...")
+            try:
+                # Placeholder for QKD key acquisition logic
+                # Replace with actual call to qkdgkt
+                key_data = qkdgkt.qkd_get_key_custom_params('UPB-AP-UPBC', '141.85.241.65:12443', 'upb-ap.crt', 'qkd.key', 'qkd-ca.crt', 'pgpopescu', 'Request')
+                key_data = json.loads(key_data)
+                key = key_data['keys'][0]['key']
+                key_id = key_data['keys'][0]['key_ID']
+                self.qkd_key = key
+                self.qkd_key_id = key_id
+                print(key_id, key)
+                QtWidgets.QApplication.instance().processEvents()  
+                self.adjustSize()
 
-            self.step_qkd_button.setText("QKD Key Acquired")
-            self.step_qkd_button.setEnabled(False)
-            self.step_qkd_status.setPixmap(QPixmap("checkmark.png").scaled(20, 20, Qt.KeepAspectRatio))
-            self.step_wgconfig_button.setEnabled(True)  # Enable the next step
-            self.status_bar.showMessage("QKD Key acquired successfully", 5000)
-        
-            self.qkd_key_id_label.setText(f"QKD Key ID: {key_id}")
-            self.qkd_key_id_copy_button.show()
-            # show fields
-            self.server_public_key_label.show()
-            self.server_public_key_field.show()
-            self.server_ip_label.show()
-            self.server_ip_field.show()
-            self.server_port_label.show()
-            self.server_port_field.show()
-            self.peer_ip_label.show()
-            self.peer_ip_field.show()
+                self.qkd_key_id_label.setText(f"QKD Key ID: {key_id}")
+                self.qkd_key_id_copy_button.show()
+            except Exception as e:
+                self.status_bar.setStyleSheet("color: red")
+                self.status_bar.showMessage(f"Error acquiring QKD Key: {str(e)}")
+                return
+        elif self.radio_paste_key.isChecked():
+            pasted_key = self.paste_key_field.toPlainText().strip()
+            self.qkd_key = pasted_key
+            # if pasted_key:
+            #     # self.step_qkd_status.setText("Key pasted successfully!")
+            # else:
+            #     # self.step_qkd_status.setText("No key provided.")
 
-            QtWidgets.QApplication.instance().processEvents()  
-            self.adjustSize()
-        except Exception as e:
-            self.status_bar.setStyleSheet("color: red")
-            self.status_bar.showMessage(f"Error acquiring QKD Key: {str(e)}")
+        self.step_qkd_button.setText("QKD Key Acquired")
+        self.step_qkd_button.setEnabled(False)
+        self.step_qkd_status.setPixmap(QPixmap("checkmark.png").scaled(20, 20, Qt.KeepAspectRatio))
+        self.step_wgconfig_button.setEnabled(True)  # Enable the next step
+        self.status_bar.showMessage("QKD Key acquired successfully", 5000)
+
+        # disable paste field
+        self.paste_key_field.setDisabled(True)
+    
+        # show fields
+        self.server_public_key_label.show()
+        self.server_public_key_field.show()
+        self.server_ip_label.show()
+        self.server_ip_field.show()
+        self.server_port_label.show()
+        self.server_port_field.show()
+        self.peer_ip_label.show()
+        self.peer_ip_field.show()
 
     def generate_wireguard_config(self):
         # check if the fields are filled
