@@ -24,6 +24,14 @@ This application has been developed by the Quantum Team @ UPB, and is provided t
 - Wireguard installed, you can choose your installation method [here](https://www.wireguard.com/install/).
 - Linphone installed, with desktop installation options [here](https://new.linphone.org/technical-corner/linphone?qt-technical_corner=2#qt-technical_corner).
 
+### Command line interface
+
+In addition to the graphical interface, the workflow can be run from the command line:
+
+`python3 cli.py`
+
+The CLI will prompt for the same information as the GUI and allows retrieving the QKD key automatically or providing one manually.
+
 ### Configuring the clients
 
 Download the `qkdgkt` module along the `main.py` script.
