@@ -1,0 +1,3 @@
+[submodule "qkdgkt"]
+	path = qkdgkt
+	url = https://github.com/QuantumUPB/QKD-Infra-GetKey.git
