@@ -21,7 +21,7 @@ import os
 
 qkdgkt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'QKD-Infra-GetKey'))
 sys.path.append(qkdgkt_path)
-import qkdgkt
+from qkdgkt import qkdgkt
 import json
 
 from PyQt5.QtGui import QFontMetrics
