@@ -171,8 +171,18 @@ def cli(role: str) -> None:
         while click.confirm("Add a peer?", default=not peers):
             peer_ip = click.prompt("Peer IP")
             peer_public_key = click.prompt("Peer public key")
-            peer_qkd_key_id = click.prompt("Peer QKD key ID")
-            peer_qkd_key = acquire_peer_qkd_key(peer_qkd_key_id)
+            if click.confirm("Acquire peer QKD key automatically?", default=True):
+                peer_qkd_key_id = click.prompt("Peer QKD key ID")
+                peer_qkd_key = acquire_peer_qkd_key(peer_qkd_key_id)
+                click.echo(
+                    f"Peer QKD key acquired with ID: {peer_qkd_key_id}"
+                )
+            else:
+                peer_qkd_key = click.prompt("Peer QKD key")
+                peer_qkd_key_id = click.prompt("Peer QKD key ID")
+                click.echo(
+                    f"Peer QKD key provided with ID: {peer_qkd_key_id}"
+                )
             peers.append(
                 {
                     "ip": peer_ip,
