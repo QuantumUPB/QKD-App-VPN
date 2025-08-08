@@ -19,14 +19,13 @@ from PyQt5.QtWidgets import QFrame
 import subprocess
 import os
 
-qkdgkt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'QKD-Infra-GetKey'))
-sys.path.append(qkdgkt_path)
-import qkdgkt
+from qkdgkt import qkdgkt
 import json
 
 from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5 import QtWidgets
+
 
 class QKDApp(QWidget):
     def __init__(self):
@@ -77,7 +76,7 @@ class QKDApp(QWidget):
         self.setWindowTitle('Quantum VPN')
         self.setGeometry(300, 100, 400, 100)
         self.show()
-    
+
     def init_client(self):
         self.init_buttons("client")
 
@@ -92,6 +91,44 @@ class QKDApp(QWidget):
         # remove the client and server buttons
         self.type_client_button.hide()
         self.type_server_button.hide()
+
+        if self.type == "client":
+            # ——— DKG Custom Params Section ———
+            self.params_layout = QVBoxLayout()
+            # Destination
+            self.dest_label = QLabel("Consumer:")
+            self.dest_field = QLineEdit()
+            self.dest_field.setPlaceholderText("CONS_CLU_UBB")
+
+            # KME address
+            self.kme_label = QLabel("QKD Box address (host:port):")
+            self.kme_field = QLineEdit()
+            self.kme_field.setPlaceholderText("1.2.3.4:5678")
+
+            # Certificate paths and password
+            self.cert_label = QLabel("Cert Path:")
+            self.cert_field = QLineEdit("upb-ap.crt")
+            # self.cert_field.setPlaceholderText("upb-ap.crt")
+
+            self.keypath_label = QLabel("Key Path:")
+            self.keypath_field = QLineEdit("qkd.key")
+
+            self.cacert_label = QLabel("CA Cert Path:")
+            self.cacert_field = QLineEdit()
+
+            self.pw_label = QLabel("PEM Password (Optional):")
+            self.pw_field = QLineEdit()
+
+            # assemble
+            for w in (self.dest_label, self.dest_field,
+                      self.kme_label, self.kme_field,
+                      self.cert_label, self.cert_field,
+                      self.keypath_label, self.keypath_field,
+                      self.cacert_label, self.cacert_field,
+                      self.pw_label, self.pw_field):
+                self.params_layout.addWidget(w)
+            # insert above everything else on the left
+            self.buttons_layout.insertLayout(0, self.params_layout)
 
         # Step: Generate authentication keys
         self.step_auth_layout = QHBoxLayout()
@@ -175,7 +212,6 @@ class QKDApp(QWidget):
 
             # Finally, add the layout to your main layout (assumed to be `buttons_layout` in your case)
             self.buttons_layout.addLayout(self.step_qkd_layout)
-
 
             # Label to display the QKD key id
             self.qkd_key_id_label = QLabel("")
@@ -293,7 +329,8 @@ class QKDApp(QWidget):
         # Step: Generate WireGuard config
         self.step_wgconfig_layout = QHBoxLayout()
         self.step_wgconfig_button = QPushButton("Generate WireGuard Config")
-        self.step_wgconfig_button.clicked.connect(self.generate_wireguard_config if self.type == "client" else self.generate_wireguard_config_server)
+        self.step_wgconfig_button.clicked.connect(
+            self.generate_wireguard_config if self.type == "client" else self.generate_wireguard_config_server)
         self.step_wgconfig_button.setEnabled(False)
         self.step_wgconfig_status = QLabel("")
         self.step_wgconfig_status.setFixedSize(20, 20)
@@ -323,7 +360,7 @@ class QKDApp(QWidget):
             self.step_linphone_layout.addWidget(self.step_linphone_status)
             self.step_linphone_layout.addWidget(self.step_linphone_button)
             self.buttons_layout.addLayout(self.step_linphone_layout)
-    
+
         self.buttons_layout.addStretch(1)
 
         # configure about section
@@ -362,7 +399,11 @@ class QKDApp(QWidget):
         # fix about section width
         self.about_label.setFixedWidth(400)
         # set minimum size for the window
-        self.setMinimumSize(900, 400)
+
+        if self.type == "client":
+            self.setMinimumSize(900, 750)
+        else:
+            self.setMinimumSize(900, 400)
 
     def update_peers_text(self):
         text = f"{len(self.peers)} Peers:\n"
@@ -380,14 +421,22 @@ class QKDApp(QWidget):
             self.status_bar.setStyleSheet("color: red")
             self.status_bar.showMessage("Please fill in all fields", 5000)
             return
-        
+
         peer_ip = self.peer_ip_field.text()
         peer_public_key = self.peer_public_key_field.text()
         peer_qkd_key_id = self.peer_qkd_key_id_field.text()
 
         # get key with id
         try:
-            key_data = qkdgkt.qkd_get_key_custom_params('UPB-AP-UPBP', '141.85.241.65:22443', 'upb-ap.crt', 'qkd.key', 'qkd-ca.crt', 'pgpopescu', 'Response', peer_qkd_key_id)
+            dest = self.dest_field.text().strip()
+            kme = self.kme_field.text().strip()
+            cert = self.cert_field.text().strip()
+            keyp = self.keypath_field.text().strip()
+            cac = self.cacert_field.text().strip() or None
+            pwd = self.pw_field.text().strip()
+
+            key_data = qkdgkt.qkd_get_key_custom_params(dest, kme, cert, keyp, cac, pwd,
+                                                        'Response', peer_qkd_key_id)
             key_data = json.loads(key_data)
             key = key_data['keys'][0]['key']
 
@@ -414,7 +463,7 @@ class QKDApp(QWidget):
             self.status_bar.setStyleSheet("color: red")
             self.status_bar.showMessage("Please add at least 2 peers", 5000)
             return
-        
+
         self.lock_peers_button.setEnabled(False)
         self.add_peer_button.setEnabled(False)
         self.peer_ip_label.hide()
@@ -433,15 +482,16 @@ class QKDApp(QWidget):
         self.server_port_label.show()
         self.server_port_field.show()
 
-        QtWidgets.QApplication.instance().processEvents()  
+        QtWidgets.QApplication.instance().processEvents()
         self.adjustSize()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+
         if self.type == "client":
             self.set_ellipsized_text(self.public_key_label, self.public_key_str)
             # self.set_ellipsized_text(self.qkd_key_id_label, self.qkd_key_id)
-    
+
     def generate_wireguard_keys(self):
         try:
             # Generate WireGuard private key
@@ -478,7 +528,7 @@ class QKDApp(QWidget):
                 self.lock_peers_button.setEnabled(True)
 
             self.status_bar.showMessage("WireGuard key pair generated successfully", 5000)
-        
+
             self.copy_button.show()
         except Exception as e:
             self.status_bar.setStyleSheet("color: red")
@@ -495,14 +545,21 @@ class QKDApp(QWidget):
             try:
                 # Placeholder for QKD key acquisition logic
                 # Replace with actual call to qkdgkt
-                key_data = qkdgkt.qkd_get_key_custom_params('UPB-AP-UPBC', '141.85.241.65:12443', 'upb-ap.crt', 'qkd.key', 'qkd-ca.crt', 'pgpopescu', 'Request')
+                dest = self.dest_field.text().strip()
+                kme = self.kme_field.text().strip()
+                cert = self.cert_field.text().strip()
+                keyp = self.keypath_field.text().strip()
+                cac = self.cacert_field.text().strip() or None
+                pwd = self.pw_field.text().strip()
+
+                key_data = qkdgkt.qkd_get_key_custom_params(dest, kme, cert, keyp, cac, pwd, 'Request')
                 key_data = json.loads(key_data)
                 key = key_data['keys'][0]['key']
                 key_id = key_data['keys'][0]['key_ID']
                 self.qkd_key = key
                 self.qkd_key_id = key_id
                 print(key_id, key)
-                QtWidgets.QApplication.instance().processEvents()  
+                QtWidgets.QApplication.instance().processEvents()
                 self.adjustSize()
 
                 self.qkd_key_id_label.setText(f"QKD Key ID: {key_id}")
@@ -527,7 +584,7 @@ class QKDApp(QWidget):
 
         # disable paste field
         self.paste_key_field.setDisabled(True)
-    
+
         # show fields
         self.server_public_key_label.show()
         self.server_public_key_field.show()
@@ -560,7 +617,8 @@ PresharedKey = {self.qkd_key}
 """
             # open browse to save text file
             options = QFileDialog.Options()
-            file_name, _ = QFileDialog.getSaveFileName(self, "Save WireGuard Config", "wg_client.conf", "All Files (*);;Text Files (*.conf)", options=options)
+            file_name, _ = QFileDialog.getSaveFileName(self, "Save WireGuard Config", "wg_client.conf",
+                                                       "All Files (*);;Text Files (*.conf)", options=options)
             if file_name:
                 with open(file_name, 'w') as f:
                     f.write(config_data)
@@ -583,9 +641,9 @@ PresharedKey = {self.qkd_key}
             self.peer_ip_label.hide()
             self.peer_ip_field.hide()
 
-            QtWidgets.QApplication.instance().processEvents()  
+            QtWidgets.QApplication.instance().processEvents()
             self.adjustSize()
-        
+
         except Exception as e:
             self.status_bar.setStyleSheet("color: red")
             self.status_bar.showMessage(f"Error generating WireGuard config: {str(e)}")
@@ -615,7 +673,8 @@ AllowedIPs = {peer['peer_ip']}/32
 
             # open browse to save text file
             options = QFileDialog.Options()
-            file_name, _ = QFileDialog.getSaveFileName(self, "Save WireGuard Config", "wg_server.conf", "All Files (*);;Text Files (*.conf)", options=options)
+            file_name, _ = QFileDialog.getSaveFileName(self, "Save WireGuard Config", "wg_server.conf",
+                                                       "All Files (*);;Text Files (*.conf)", options=options)
             if file_name:
                 with open(file_name, 'w') as f:
                     f.write(config_data)
@@ -635,13 +694,12 @@ AllowedIPs = {peer['peer_ip']}/32
             self.server_ip_label.hide()
             self.server_port_label.hide()
 
-            QtWidgets.QApplication.instance().processEvents()  
+            QtWidgets.QApplication.instance().processEvents()
             self.adjustSize()
-        
+
         except Exception as e:
             self.status_bar.setStyleSheet("color: red")
             self.status_bar.showMessage(f"Error generating WireGuard config: {str(e)}")
-
 
     def open_wireguard(self):
         try:
@@ -673,7 +731,6 @@ AllowedIPs = {peer['peer_ip']}/32
 
 
 if __name__ == '__main__':
-
     app = QApplication(sys.argv)
     window = QKDApp()
     sys.exit(app.exec_())
